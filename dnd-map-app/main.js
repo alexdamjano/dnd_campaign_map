@@ -89,3 +89,7 @@ const map = new Map({
 		maxZoom: 6,
 	}),
 });
+
+// map.on("click", function (evt) {
+// 	console.log(evt.coordinate, "Latitude :" + evt.coordinate[0] + ", Longitude :" + evt.coordinate[1]);
+// });
