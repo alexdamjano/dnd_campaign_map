@@ -49,11 +49,10 @@ class RecenterControl extends Control {
 	}
 }
 
-const extent = [0, 0, 2400, 1200];
 const projection = new Projection({
 	code: "satmap-image",
 	units: "pixels",
-	extent: extent,
+	extent: [0, 0, 9600, 4800],
 });
 
 const map = new Map({
@@ -67,7 +66,7 @@ const map = new Map({
 			source: new Static({
 				url: "http://127.0.0.1:5500/sat_map.png",
 				projection: projection,
-				imageExtent: extent,
+				imageExtent: [0, 0, 9600, 4800],
 			}),
 		}),
 		new VectorLayer({
@@ -83,7 +82,10 @@ const map = new Map({
 	target: "map",
 	view: new View({
 		projection: projection,
-		center: getCenter(extent),
-		zoom: 2.58,
+		center: getCenter([0, 0, 9600, 4800]),
+		extent: [500, 500, 9600, 4800],
+		zoom: 1,
+		minZoom: 2.58,
+		maxZoom: 6,
 	}),
 });
