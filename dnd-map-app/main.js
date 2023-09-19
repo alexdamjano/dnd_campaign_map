@@ -15,12 +15,44 @@ import { useGeographic } from "ol/proj.js";
 useGeographic();
 
 const place = [500, 500];
-
 const point = new Point(place);
+const projection = new Projection({
+	code: "satmap-image",
+	units: "pixels",
+	extent: [0, 0, 9600, 4800],
+});
 
-//
-// Define rotate to north control.
-//
+var satMap = new ImageLayer({
+	source: new Static({
+		url: "http://127.0.0.1:5500/sat_map.png",
+		projection: projection,
+		maxZoom: 5,
+		imageExtent: [0, 0, 9600, 4800],
+	}),
+});
+
+var climateMap = new ImageLayer({
+	source: new Static({
+		url: "http://127.0.0.1:5500/climate_map.png",
+		projection: projection,
+		minZoom: 5,
+		imageExtent: [0, 0, 9600, 4800],
+		visible: true,
+	}),
+});
+climateMap.setVisible(!climateMap.getVisible());
+
+var elevMap = new ImageLayer({
+	source: new Static({
+		url: "http://127.0.0.1:5500/elevation_map.png",
+		projection: projection,
+		minZoom: 4,
+		maxZoom: 3,
+		imageExtent: [0, 0, 9600, 4800],
+		visible: true,
+	}),
+});
+elevMap.setVisible(!climateMap.getVisible());
 
 class RecenterControl extends Control {
 	/**
@@ -49,26 +81,70 @@ class RecenterControl extends Control {
 	}
 }
 
-const projection = new Projection({
-	code: "satmap-image",
-	units: "pixels",
-	extent: [0, 0, 9600, 4800],
-});
+class ToggleClimateMap extends Control {
+	/**
+	 * @param {Object} [opt_options] Control options.
+	 */
+	constructor(opt_options) {
+		const options = opt_options || {};
+
+		const button = document.createElement("button");
+		button.innerHTML = "K";
+
+		const element = document.createElement("div");
+		element.className = "toggle-climate ol-unselectable ol-control";
+		element.appendChild(button);
+
+		super({
+			element: element,
+			target: options.target,
+		});
+
+		button.addEventListener("click", this.toggleClimate.bind(this), false);
+	}
+
+	toggleClimate() {
+		climateMap.setVisible(!climateMap.getVisible());
+	}
+}
+
+class ToggleElevMap extends Control {
+	/**
+	 * @param {Object} [opt_options] Control options.
+	 */
+	constructor(opt_options) {
+		const options = opt_options || {};
+
+		const button = document.createElement("button");
+		button.innerHTML = "E";
+
+		const element = document.createElement("div");
+		element.className = "toggle-elev ol-unselectable ol-control";
+		element.appendChild(button);
+
+		super({
+			element: element,
+			target: options.target,
+		});
+
+		button.addEventListener("click", this.toggleElev.bind(this), false);
+	}
+
+	toggleElev() {
+		elevMap.setVisible(!climateMap.getVisible());
+	}
+}
 
 const map = new Map({
-	controls: defaultControls().extend([new RecenterControl()]),
+	controls: defaultControls().extend([new RecenterControl(), new ToggleClimateMap(), new ToggleElevMap()]),
 	target: "map",
 	layers: [
 		new TileLayer({
 			source: new OSM(),
 		}),
-		new ImageLayer({
-			source: new Static({
-				url: "http://127.0.0.1:5500/sat_map.png",
-				projection: projection,
-				imageExtent: [0, 0, 9600, 4800],
-			}),
-		}),
+		satMap,
+		climateMap,
+		elevMap,
 		new VectorLayer({
 			source: new VectorSource({
 				features: [new Feature(point)],
@@ -90,6 +166,6 @@ const map = new Map({
 	}),
 });
 
-// map.on("click", function (evt) {
-// 	console.log(evt.coordinate, "Latitude :" + evt.coordinate[0] + ", Longitude :" + evt.coordinate[1]);
-// });
+map.on("click", function (evt) {
+	console.log(evt.coordinate, "Latitude :" + evt.coordinate[0] + ", Longitude :" + evt.coordinate[1]);
+});
