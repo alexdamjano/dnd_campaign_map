@@ -11,6 +11,10 @@ import { Point } from "ol/geom.js";
 import { getCenter } from "ol/extent.js";
 import { Control, defaults as defaultControls } from "ol/control.js";
 import { useGeographic } from "ol/proj.js";
+import GeoJSON from "ol/format/GeoJSON.js";
+import { Circle as CircleStyle, Fill, Stroke, Style } from "ol/style.js";
+import MultiPoint from "ol/geom/MultiPoint.js";
+import { prov1_styles, prov1_geojsonObject } from "./provinceGeos";
 
 useGeographic();
 
@@ -53,6 +57,18 @@ var elevMap = new ImageLayer({
 	}),
 });
 elevMap.setVisible(!elevMap.getVisible());
+
+var provinceLayer = new ImageLayer({
+	source: new Static({
+		url: "http://127.0.0.1:5500/province_map.png",
+		projection: projection,
+		minZoom: 4,
+		maxZoom: 3,
+		imageExtent: [0, 0, 9600, 4800],
+		visible: true,
+	}),
+});
+provinceLayer.setVisible(!provinceLayer.getVisible());
 
 var citiesLayer = new ImageLayer({
 	source: new Static({
@@ -147,6 +163,33 @@ class ToggleElevMap extends Control {
 	}
 }
 
+class ToggleProvinces extends Control {
+	/**
+	 * @param {Object} [opt_options] Control options.
+	 */
+	constructor(opt_options) {
+		const options = opt_options || {};
+
+		const button = document.createElement("button");
+		button.innerHTML = "P";
+
+		const element = document.createElement("div");
+		element.className = "toggle-provinces ol-unselectable ol-control";
+		element.appendChild(button);
+
+		super({
+			element: element,
+			target: options.target,
+		});
+
+		button.addEventListener("click", this.toggleProvinces.bind(this), false);
+	}
+
+	toggleProvinces() {
+		provinceLayer.setVisible(!provinceLayer.getVisible());
+	}
+}
+
 class ToggleCities extends Control {
 	/**
 	 * @param {Object} [opt_options] Control options.
@@ -175,7 +218,7 @@ class ToggleCities extends Control {
 }
 
 const map = new Map({
-	controls: defaultControls().extend([new RecenterControl(), new ToggleClimateMap(), new ToggleElevMap(), new ToggleCities()]),
+	controls: defaultControls().extend([new RecenterControl(), new ToggleClimateMap(), new ToggleElevMap(), new ToggleCities(), new ToggleProvinces()]),
 	target: "map",
 	layers: [
 		new TileLayer({
@@ -184,16 +227,13 @@ const map = new Map({
 		satMap,
 		climateMap,
 		elevMap,
+		provinceLayer,
 		citiesLayer,
 		new VectorLayer({
 			source: new VectorSource({
-				features: [new Feature(point)],
+				features: new GeoJSON().readFeatures(prov1_geojsonObject),
 			}),
-			style: {
-				"circle-radius": 4,
-				"circle-fill-color": "#D3D3D3",
-				"circle-border-color": "black",
-			},
+			style: prov1_styles,
 		}),
 	],
 	target: "map",
@@ -207,6 +247,8 @@ const map = new Map({
 	}),
 });
 
+var coordsList = "";
 map.on("click", function (evt) {
-	console.log(evt.coordinate, "Latitude :" + evt.coordinate[0] + ", Longitude :" + evt.coordinate[1]);
+	coordsList += "[" + evt.coordinate + "], ";
+	console.log(coordsList);
 });
