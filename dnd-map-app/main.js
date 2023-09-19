@@ -14,7 +14,7 @@ import { useGeographic } from "ol/proj.js";
 
 useGeographic();
 
-const place = [500, 500];
+const place = [2155.69, 1602.65];
 const point = new Point(place);
 const projection = new Projection({
 	code: "satmap-image",
@@ -52,7 +52,19 @@ var elevMap = new ImageLayer({
 		visible: true,
 	}),
 });
-elevMap.setVisible(!climateMap.getVisible());
+elevMap.setVisible(!elevMap.getVisible());
+
+var citiesLayer = new ImageLayer({
+	source: new Static({
+		url: "http://127.0.0.1:5500/cities.png",
+		projection: projection,
+		minZoom: 4,
+		maxZoom: 3,
+		imageExtent: [0, 0, 9600, 4800],
+		visible: true,
+	}),
+});
+citiesLayer.setVisible(!citiesLayer.getVisible());
 
 class RecenterControl extends Control {
 	/**
@@ -131,12 +143,39 @@ class ToggleElevMap extends Control {
 	}
 
 	toggleElev() {
-		elevMap.setVisible(!climateMap.getVisible());
+		elevMap.setVisible(!elevMap.getVisible());
+	}
+}
+
+class ToggleCities extends Control {
+	/**
+	 * @param {Object} [opt_options] Control options.
+	 */
+	constructor(opt_options) {
+		const options = opt_options || {};
+
+		const button = document.createElement("button");
+		button.innerHTML = "T";
+
+		const element = document.createElement("div");
+		element.className = "toggle-cities ol-unselectable ol-control";
+		element.appendChild(button);
+
+		super({
+			element: element,
+			target: options.target,
+		});
+
+		button.addEventListener("click", this.toggleCities.bind(this), false);
+	}
+
+	toggleCities() {
+		citiesLayer.setVisible(!citiesLayer.getVisible());
 	}
 }
 
 const map = new Map({
-	controls: defaultControls().extend([new RecenterControl(), new ToggleClimateMap(), new ToggleElevMap()]),
+	controls: defaultControls().extend([new RecenterControl(), new ToggleClimateMap(), new ToggleElevMap(), new ToggleCities()]),
 	target: "map",
 	layers: [
 		new TileLayer({
@@ -145,13 +184,15 @@ const map = new Map({
 		satMap,
 		climateMap,
 		elevMap,
+		citiesLayer,
 		new VectorLayer({
 			source: new VectorSource({
 				features: [new Feature(point)],
 			}),
 			style: {
-				"circle-radius": 2,
-				"circle-fill-color": "red",
+				"circle-radius": 4,
+				"circle-fill-color": "#D3D3D3",
+				"circle-border-color": "black",
 			},
 		}),
 	],
@@ -159,7 +200,7 @@ const map = new Map({
 	view: new View({
 		projection: projection,
 		center: getCenter([0, 0, 9600, 4800]),
-		extent: [500, 500, 9600, 4800],
+		extent: [0, 0, 9600, 4800],
 		zoom: 1,
 		minZoom: 2.58,
 		maxZoom: 6,
