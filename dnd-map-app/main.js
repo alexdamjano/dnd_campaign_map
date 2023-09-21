@@ -14,7 +14,7 @@ import { useGeographic } from "ol/proj.js";
 import GeoJSON from "ol/format/GeoJSON.js";
 import { Circle as CircleStyle, Fill, Stroke, Style } from "ol/style.js";
 import MultiPoint from "ol/geom/MultiPoint.js";
-import { prov1_styles, prov1_geojsonObject } from "./provinceGeos";
+import { styleFunction, tovoit_provs_gjO } from "./provinceGeos";
 
 useGeographic();
 
@@ -69,6 +69,15 @@ var provinceLayer = new ImageLayer({
 	}),
 });
 provinceLayer.setVisible(!provinceLayer.getVisible());
+
+var provVecLayer = new VectorLayer({
+	source: new VectorSource({
+		features: new GeoJSON().readFeatures(tovoit_provs_gjO),
+	}),
+	style: styleFunction,
+	minZoom: 4,
+});
+// provVecLayer.setVisible(!provVecLayer.getVisible());
 
 var citiesLayer = new ImageLayer({
 	source: new Static({
@@ -190,6 +199,33 @@ class ToggleProvinces extends Control {
 	}
 }
 
+class ToggleProvVecs extends Control {
+	/**
+	 * @param {Object} [opt_options] Control options.
+	 */
+	constructor(opt_options) {
+		const options = opt_options || {};
+
+		const button = document.createElement("button");
+		button.innerHTML = "PV";
+
+		const element = document.createElement("div");
+		element.className = "toggle-prov-vecs ol-unselectable ol-control";
+		element.appendChild(button);
+
+		super({
+			element: element,
+			target: options.target,
+		});
+
+		button.addEventListener("click", this.toggleProvVecs.bind(this), false);
+	}
+
+	toggleProvVecs() {
+		provVecLayer.setVisible(!provVecLayer.getVisible());
+	}
+}
+
 class ToggleCities extends Control {
 	/**
 	 * @param {Object} [opt_options] Control options.
@@ -218,7 +254,7 @@ class ToggleCities extends Control {
 }
 
 const map = new Map({
-	controls: defaultControls().extend([new RecenterControl(), new ToggleClimateMap(), new ToggleElevMap(), new ToggleCities(), new ToggleProvinces()]),
+	controls: defaultControls().extend([new RecenterControl(), new ToggleClimateMap(), new ToggleElevMap(), new ToggleCities(), new ToggleProvinces(), new ToggleProvVecs()]),
 	target: "map",
 	layers: [
 		new TileLayer({
@@ -229,12 +265,7 @@ const map = new Map({
 		elevMap,
 		provinceLayer,
 		citiesLayer,
-		new VectorLayer({
-			source: new VectorSource({
-				features: new GeoJSON().readFeatures(prov1_geojsonObject),
-			}),
-			style: prov1_styles,
-		}),
+		provVecLayer,
 	],
 	target: "map",
 	view: new View({
@@ -243,7 +274,7 @@ const map = new Map({
 		extent: [0, 0, 9600, 4800],
 		zoom: 1,
 		minZoom: 2.58,
-		maxZoom: 6,
+		maxZoom: 9,
 	}),
 });
 
