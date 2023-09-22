@@ -75,7 +75,7 @@ var provVecLayer = new VectorLayer({
 		features: new GeoJSON().readFeatures(tovoit_provs_gjO),
 	}),
 	style: styleFunction,
-	minZoom: 4,
+	minZoom: 3,
 });
 // provVecLayer.setVisible(!provVecLayer.getVisible());
 
@@ -282,4 +282,7 @@ var coordsList = "";
 map.on("click", function (evt) {
 	coordsList += "[" + evt.coordinate + "], ";
 	console.log(coordsList);
+});
+map.on("dblclick", function (evt) {
+	coordsList = "";
 });
