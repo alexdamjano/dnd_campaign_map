@@ -51,7 +51,7 @@ export const boat = new Feature({
     geometry: new Point([2794.2988546825186, 2678.4583275691425]),
 });
 
-export const startPosition = boat.getGeometry().clone();
+export const position = boat.getGeometry().clone();
 
 const endCircle = new Feature({
     type: 'circle',

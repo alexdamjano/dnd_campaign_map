@@ -15,7 +15,7 @@ import GeoJSON from "ol/format/GeoJSON.js";
 import { Circle, Fill, Icon, Stroke, Style, Text } from "ol/style.js";
 import MultiPoint from "ol/geom/MultiPoint.js";
 import { styleFunction, tovoit_provs_gjO } from "./provinceGeos";
-import { refineryStyles, route, startPosition, refineryLayer, boat } from "./refinery";
+import { refineryStyles, route, position, refineryLayer, boat } from "./refinery";
 import {getVectorContext} from 'ol/render.js';
 
 useGeographic();
@@ -291,6 +291,7 @@ map.on("dblclick", function (evt) {
 });
 
 const speedInput = document.getElementById('speed');
+const distanceInput = document.getElementById('distance');
 const startButton = document.getElementById('start-animation');
 let animating = false;
 let distance = 0;
@@ -302,15 +303,16 @@ function moveFeature(event) {
     const time = event.frameState.time;
     const elapsedTime = time - lastTime;
     distance = (distance + (speed * elapsedTime) / 1e6) % 2;
+    distanceInput.value = distance*500;
     lastTime = time;
 
     const currentCoordinate = route.getCoordinateAt(
         distance > 1 ? 2 - distance : distance
     );
-    startPosition.setCoordinates(currentCoordinate);
+    position.setCoordinates(currentCoordinate);
     const vectorContext = getVectorContext(event);
     vectorContext.setStyle(refineryStyles.boat);
-    vectorContext.drawGeometry(startPosition);
+    vectorContext.drawGeometry(position);
     // tell OpenLayers to continue the postrender animation
     map.render();
 }
@@ -329,9 +331,18 @@ function stopAnimation() {
     startButton.textContent = 'Start Animation';
 
     // Keep marker at current animation position
-    boat.setGeometry(startPosition);
+    boat.setGeometry(position);
     refineryLayer.un('postrender', moveFeature);
 }
+
+distanceInput.addEventListener('input', function (event) {
+    distance = distanceInput.value / 500;
+    const currentCoordinate = route.getCoordinateAt(
+        distance > 1 ? 2 - distance : distance
+    );
+    position.setCoordinates(currentCoordinate);
+    map.render();
+});
 
 startButton.addEventListener('click', function () {
     if (animating) {
