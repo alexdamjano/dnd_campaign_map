@@ -1,15 +1,22 @@
 @import "node_modules/ol/ol.css";
 
-html, body {
+html,
+body {
   margin: 0;
   height: 100%;
 }
+
 #map {
   position: absolute;
   top: 0;
   bottom: 0;
   width: 100%;
 }
+
+/* #refinery_icon {
+  content: url(http:127.0.0.1:5500/refinery.png);
+} */
+
 .map {
   width: 100%;
   height: 400px;

@@ -12,9 +12,10 @@ import { getCenter } from "ol/extent.js";
 import { Control, defaults as defaultControls } from "ol/control.js";
 import { useGeographic } from "ol/proj.js";
 import GeoJSON from "ol/format/GeoJSON.js";
-import { Circle as CircleStyle, Fill, Stroke, Style } from "ol/style.js";
+import { Circle, Fill, Icon, Stroke, Style, Text } from "ol/style.js";
 import MultiPoint from "ol/geom/MultiPoint.js";
 import { styleFunction, tovoit_provs_gjO } from "./provinceGeos";
+import { refineryStyle } from "./refinery";
 
 useGeographic();
 
@@ -90,6 +91,48 @@ var citiesLayer = new ImageLayer({
 	}),
 });
 citiesLayer.setVisible(!citiesLayer.getVisible());
+
+var refineryLayer = new VectorLayer({
+    source: new VectorSource({
+        features: [
+            new Feature(new Point([3658.5888708436005, 2889.958915042446]))
+        ],
+	}),
+    style: [
+        new Style({
+            image: new Icon({
+                scale: 0.1,
+                anchor: [0.5, 1.15],
+                src: 'http://127.0.0.1:5500/refinery.png',
+                // img: refinery_icon,       
+            }),
+            // text: new Text({
+            //     text: 'World\nText',
+            //     font: 'bold 20px Calibri,sans-serif',
+            //     fill: new Fill({
+            //         color: 'black',
+            //     }),
+            // }),
+            stroke: new Stroke({
+                color: 'white',
+                width: 2,
+            }),
+        }),
+        new Style({
+            image: new Circle({
+                radius: 7,
+                fill: new Fill({
+                color: 'black',
+                }),
+                stroke: new Stroke({
+                color: 'white',
+                width: 2,
+                }),
+            }),
+        })
+    ],
+	minZoom: 3,
+});
 
 class RecenterControl extends Control {
 	/**
@@ -265,7 +308,8 @@ const map = new Map({
 		elevMap,
 		provinceLayer,
 		citiesLayer,
-		provVecLayer,
+        provVecLayer,
+        refineryLayer,
 	],
 	target: "map",
 	view: new View({

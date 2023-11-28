@@ -1,4 +1,4 @@
-import { Circle as CircleStyle, Fill, Stroke, Style } from "ol/style.js";
+import { Circle as CircleStyle, Icon, Fill, Stroke, Style } from "ol/style.js";
 import MultiPoint from "ol/geom/MultiPoint.js";
 import Text from "ol/style/Text";
 import Static from "ol/source/ImageStatic.js";
@@ -342,6 +342,10 @@ export function styleFunction(feature, resolution) {
 					color: "white",
 				}),
 			}),
+			// image: new Icon({
+			// 	src: 'http://127.0.0.1:5500/refinery.png',
+			// 	// img: refinery_icon,
+            // }),
 			geometry: function (feature) {
 				const coordinates = city_coords[feature.get("name")];
 				return new MultiPoint(coordinates);
