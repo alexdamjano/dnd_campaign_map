@@ -15,7 +15,8 @@ import GeoJSON from "ol/format/GeoJSON.js";
 import { Circle, Fill, Icon, Stroke, Style, Text } from "ol/style.js";
 import MultiPoint from "ol/geom/MultiPoint.js";
 import { styleFunction, tovoit_provs_gjO } from "./provinceGeos";
-import { refineryStyle } from "./refinery";
+import { refineryStyles, route, startPosition, refineryLayer, boat } from "./refinery";
+import {getVectorContext} from 'ol/render.js';
 
 useGeographic();
 
@@ -91,48 +92,6 @@ var citiesLayer = new ImageLayer({
 	}),
 });
 citiesLayer.setVisible(!citiesLayer.getVisible());
-
-var refineryLayer = new VectorLayer({
-    source: new VectorSource({
-        features: [
-            new Feature(new Point([3658.5888708436005, 2889.958915042446]))
-        ],
-	}),
-    style: [
-        new Style({
-            image: new Icon({
-                scale: 0.1,
-                anchor: [0.5, 1.15],
-                src: 'http://127.0.0.1:5500/refinery.png',
-                // img: refinery_icon,       
-            }),
-            // text: new Text({
-            //     text: 'World\nText',
-            //     font: 'bold 20px Calibri,sans-serif',
-            //     fill: new Fill({
-            //         color: 'black',
-            //     }),
-            // }),
-            stroke: new Stroke({
-                color: 'white',
-                width: 2,
-            }),
-        }),
-        new Style({
-            image: new Circle({
-                radius: 7,
-                fill: new Fill({
-                color: 'black',
-                }),
-                stroke: new Stroke({
-                color: 'white',
-                width: 2,
-                }),
-            }),
-        })
-    ],
-	minZoom: 3,
-});
 
 class RecenterControl extends Control {
 	/**
@@ -329,4 +288,55 @@ map.on("click", function (evt) {
 });
 map.on("dblclick", function (evt) {
 	coordsList = "";
+});
+
+const speedInput = document.getElementById('speed');
+const startButton = document.getElementById('start-animation');
+let animating = false;
+let distance = 0;
+let lastTime;
+
+//refinery boat moving thing
+function moveFeature(event) {
+    const speed = Number(speedInput.value);
+    const time = event.frameState.time;
+    const elapsedTime = time - lastTime;
+    distance = (distance + (speed * elapsedTime) / 1e6) % 2;
+    lastTime = time;
+
+    const currentCoordinate = route.getCoordinateAt(
+        distance > 1 ? 2 - distance : distance
+    );
+    startPosition.setCoordinates(currentCoordinate);
+    const vectorContext = getVectorContext(event);
+    vectorContext.setStyle(refineryStyles.boat);
+    vectorContext.drawGeometry(startPosition);
+    // tell OpenLayers to continue the postrender animation
+    map.render();
+}
+
+function startAnimation() {
+    animating = true;
+    lastTime = Date.now();
+    startButton.textContent = 'Stop Animation';
+    refineryLayer.on('postrender', moveFeature);
+    // hide geoMarker and trigger map render through change event
+    boat.setGeometry(null);
+}
+
+function stopAnimation() {
+    animating = false;
+    startButton.textContent = 'Start Animation';
+
+    // Keep marker at current animation position
+    boat.setGeometry(startPosition);
+    refineryLayer.un('postrender', moveFeature);
+}
+
+startButton.addEventListener('click', function () {
+    if (animating) {
+    stopAnimation();
+    } else {
+    startAnimation();
+    }
 });

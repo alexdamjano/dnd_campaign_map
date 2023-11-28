@@ -8,7 +8,13 @@
 		<link rel="stylesheet" href="node_modules/ol/ol.css" />
 	</head>
 	<body>
-		<div id="map"></div>
-		<script type="module" src="./main.js"></script>
-	</body>
+    <div id="map" class="map"></div>
+    <label for="speed">
+      speed:&nbsp;
+      <input id="speed" type="range" min="10" max="999" step="10" value="60">
+    </label>
+    <button id="start-animation">Start Animation</button>
+
+    <script type="module" src="main.js"></script>
+  </body>
 </html>
