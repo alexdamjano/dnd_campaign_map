@@ -304,6 +304,9 @@ let animating = false;
 let distance = 0;
 
 const ref_q_anim = new TravelAnimation(
+	startButton,
+	speedInput,
+	distanceInput,
     animating,
     ref_q_styles,
     ref_q_route,
@@ -313,18 +316,27 @@ const ref_q_anim = new TravelAnimation(
     map
 )
 
-distanceInput.addEventListener('input', function (event) {
-    distance = distanceInput.value / 500;
-    const currentCoordinate = ref_q_route.getCoordinateAt(
-        distance > 1 ? 2 - distance : distance
-    );
-    ref_q_pos.setCoordinates(currentCoordinate);
+startButton.addEventListener('click', function () {
+	console.log("click")
+	if (ref_q_anim.getAnimating()) {
+		console.log(" stop")
+		ref_q_anim.stopAnimation(startButton);
+		// animating = ref_q_anim.getAnimating();
+		// map.render();
+	} else {
+		console.log(" start")
+		ref_q_anim.startAnimation(startButton);
+		// animating = ref_q_anim.getAnimating();
+		// map.render();
+	}
 });
 
-startButton.addEventListener('click', function () {
-    if (animating) {
-        ref_q_anim.stopAnimation();
-    } else {
-        ref_q_anim.startAnimation();
-    }
+distanceInput.addEventListener('input', function (event) {
+	var d = ref_q_anim.getDistance()
+	ref_q_anim.setDistance(distanceInput.value / 500);
+	const currentCoordinate = ref_q_route.getCoordinateAt(
+		d > 1 ? 2 - d : d
+	);
+	ref_q_pos.setCoordinates(currentCoordinate);
+	map.render();
 });
