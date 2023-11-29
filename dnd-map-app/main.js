@@ -15,8 +15,8 @@ import GeoJSON from "ol/format/GeoJSON.js";
 import { Circle, Fill, Icon, Stroke, Style, Text } from "ol/style.js";
 import MultiPoint from "ol/geom/MultiPoint.js";
 import { styleFunction, tovoit_provs_gjO } from "./provinceGeos";
-import { refineryStyles, route, position, refineryLayer, boat } from "./refinery";
-import {getVectorContext} from 'ol/render.js';
+import { RefineryQuest } from "./refinery";
+import { TravelAnimation } from "./anim_class";
 
 useGeographic();
 
@@ -255,6 +255,13 @@ class ToggleCities extends Control {
 	}
 }
 
+const ref_q = new RefineryQuest();
+const ref_q_styles = ref_q.getStyles()
+const ref_q_route = ref_q.getRoute()
+const ref_q_pos = ref_q.getPosition()
+const ref_q_layer = ref_q.getLayer()
+const ref_q_vehicle = ref_q.getVehicle()
+
 const map = new Map({
 	controls: defaultControls().extend([new RecenterControl(), new ToggleClimateMap(), new ToggleElevMap(), new ToggleCities(), new ToggleProvinces(), new ToggleProvVecs()]),
 	target: "map",
@@ -268,7 +275,7 @@ const map = new Map({
 		provinceLayer,
 		citiesLayer,
         provVecLayer,
-        refineryLayer,
+        ref_q_layer,
 	],
 	target: "map",
 	view: new View({
@@ -295,59 +302,29 @@ const distanceInput = document.getElementById('distance');
 const startButton = document.getElementById('start-animation');
 let animating = false;
 let distance = 0;
-let lastTime;
 
-//refinery boat moving thing
-function moveFeature(event) {
-    const speed = Number(speedInput.value);
-    const time = event.frameState.time;
-    const elapsedTime = time - lastTime;
-    distance = (distance + (speed * elapsedTime) / 1e6) % 2;
-    distanceInput.value = distance*500;
-    lastTime = time;
-
-    const currentCoordinate = route.getCoordinateAt(
-        distance > 1 ? 2 - distance : distance
-    );
-    position.setCoordinates(currentCoordinate);
-    const vectorContext = getVectorContext(event);
-    vectorContext.setStyle(refineryStyles.boat);
-    vectorContext.drawGeometry(position);
-    // tell OpenLayers to continue the postrender animation
-    map.render();
-}
-
-function startAnimation() {
-    animating = true;
-    lastTime = Date.now();
-    startButton.textContent = 'Stop Animation';
-    refineryLayer.on('postrender', moveFeature);
-    // hide geoMarker and trigger map render through change event
-    boat.setGeometry(null);
-}
-
-function stopAnimation() {
-    animating = false;
-    startButton.textContent = 'Start Animation';
-
-    // Keep marker at current animation position
-    boat.setGeometry(position);
-    refineryLayer.un('postrender', moveFeature);
-}
+const ref_q_anim = new TravelAnimation(
+    animating,
+    ref_q_styles,
+    ref_q_route,
+    ref_q_pos,
+    ref_q_layer,
+    ref_q_vehicle,
+    map
+)
 
 distanceInput.addEventListener('input', function (event) {
     distance = distanceInput.value / 500;
-    const currentCoordinate = route.getCoordinateAt(
+    const currentCoordinate = ref_q_route.getCoordinateAt(
         distance > 1 ? 2 - distance : distance
     );
-    position.setCoordinates(currentCoordinate);
-    map.render();
+    ref_q_pos.setCoordinates(currentCoordinate);
 });
 
 startButton.addEventListener('click', function () {
     if (animating) {
-    stopAnimation();
+        ref_q_anim.stopAnimation();
     } else {
-    startAnimation();
+        ref_q_anim.startAnimation();
     }
 });
