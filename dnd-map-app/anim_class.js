@@ -20,32 +20,26 @@ export class TravelAnimation {
       this.map = map
       this.distance = distance
 
-  }
-  
-  moveFeature(event) {
-    // TODO - THIS IS CONSTANTLY RUNNING; FIX IT
-    // I think the 'postrender' event is triggered every time this moves the feature,
-    // thus it is called again from this.stopAnimation() or this.startAnimation(), and 
-    // then it goes forever.Adding the if (this.animating) here is a workaround so that 
-    // there are no visual changes, but as you'll see if you comment out the following 
-    // line, it's still being called constantly
-    // console.log("   moving")
-    const speed = Number(this.speedInput.value);
-    const time = event.frameState.time;
-    const elapsedTime = time - lastTime;
-    if (this.animating) { 
-      this.distance = (this.distance + (speed * elapsedTime) / 1e6) % 2;
-    }
-    this.distanceInput.value = this.distance * 500;
-    lastTime = time;
-    const currentCoordinate = this.route.getCoordinateAt(
-      this.distance > 1 ? 2 - this.distance : this.distance
-    );
-    this.position.setCoordinates(currentCoordinate);
-    const vectorContext = getVectorContext(event);
-    vectorContext.setStyle(this.styles.vehicle);
-    vectorContext.drawGeometry(this.position);
-    this.map.render();
+      //This has to be here because otherwise there are scoping issues for 'this'
+      //when moveFeature gets called from either Animation function
+      this.moveFeature = (event) => {
+        console.log("   moving")
+        const speed = Number(this.speedInput.value);
+        const time = event.frameState.time;
+        const elapsedTime = time - lastTime;
+        this.distance = (this.distance + (speed * elapsedTime) / 1e6) % 2;
+        this.distanceInput.value = this.distance * 500;
+        lastTime = time;
+        const currentCoordinate = this.route.getCoordinateAt(
+          this.distance > 1 ? 2 - this.distance : this.distance
+        );
+        this.position.setCoordinates(currentCoordinate);
+        const vectorContext = getVectorContext(event);
+        vectorContext.setStyle(this.styles.vehicle);
+        vectorContext.drawGeometry(this.position);
+        this.map.render();
+      }
+
   }
 
   startAnimation() {
@@ -53,7 +47,7 @@ export class TravelAnimation {
     this.animating = true;
     lastTime = Date.now();
     this.startButton.textContent = 'Stop Animation';
-    this.layer.on('postrender', this.moveFeature.bind(this));
+    this.layer.on('postrender', this.moveFeature);
     // hide geoMarker and trigger map render through change event
     this.vehicle.setGeometry(null);
   }
@@ -64,7 +58,7 @@ export class TravelAnimation {
     // Keep marker at current animation position
     this.startButton.textContent = 'Start Animation';
     this.vehicle.setGeometry(this.position);
-    this.layer.un('postrender', this.moveFeature.bind(this));
+    this.layer.un('postrender', this.moveFeature);
   }
 
   getAnimating() { 

@@ -338,5 +338,5 @@ distanceInput.addEventListener('input', function (event) {
 		d > 1 ? 2 - d : d
 	);
 	ref_q_pos.setCoordinates(currentCoordinate);
-	map.render();
+	// map.render();
 });

@@ -10,10 +10,10 @@ import { TravelAnimation } from "./anim_class";
 const styleSheet = {
             'route':
                 new Style({
-                    stroke: new Stroke({
-                    width: 6,
-                    color: [237, 212, 0, 0.8],
-                    }),
+                    // stroke: new Stroke({
+                    // width: 6,
+                    // color: [237, 212, 0, 0.8],
+                    // }),
                 }),
             'icon':
                 new Style({
